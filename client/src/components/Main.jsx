@@ -1,14 +1,36 @@
 import { StreamVideo, name } from '@stream-io/video-react-sdk'
 import React, { useState } from 'react'
-import { Navigate } from "react-router-dom";
-import { useUser } from './UserContext'
+import { Navigate, useNavigate } from "react-router-dom";
+import { useUser } from './UserContext';
+import CryptoJS from 'crypto-js';
 
 const Main = () => {
-    const { client, user } = useUser();
+    const { client, user, setCall, isLoadingClient } = useUser();
     const [newRoom, setnewRoom] = useState({ name: "", description: "" });
-    if (!client) return <Navigate to="/sign-in" />;
-    const createRoom = () => {
+    const navigate = useNavigate();
+    const hashRoomName = (roomName) => {
+        const hash = CryptoJS.SHA256(roomName).toString(CryptoJS.enc.Base64);
+        return hash.replace(/[^a-zA-Z0-9_-]/g, "");
+    }
+    if (isLoadingClient) return <h1>...</h1>
+    if (!isLoadingClient && !user || !isLoadingClient && !client) return <Navigate to="/sign-in" />;
+    const createRoom = async () => {
+        const { name, description } = newRoom;
+        if (!client || !user || !name || !description) return;
 
+        const call = client.call("audio_room", hashRoomName(name));
+        await call.join({
+            create: true,
+            date: {
+                members: [{ user_id: user.username }],
+                custom: {
+                    title: name,
+                    description,
+                }
+            }
+        });
+        setCall(call);
+        Navigate("/room");
     }
 
     return (
