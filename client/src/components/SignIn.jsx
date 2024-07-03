@@ -6,10 +6,14 @@ import PEOPLES_IMAGES from './avatars';
 import axios from 'axios';
 import Cookies from 'universal-cookie';
 import { StreamVideoClient } from "@stream-io/video-react-sdk";
+import { useUser } from './UserContext';
+import { useNavigate } from 'react-router-dom';
 
 
 const SignIn = () => {
     const cookies = new Cookies();
+    const { setClient, setUser } = useUser();
+    const navigate = useNavigate();
 
     const server_route = import.meta.env.VITE_APP_SERVER;
 
@@ -53,6 +57,9 @@ const SignIn = () => {
                 token: responseData.token,
             })
 
+            setClient(myClient);
+            setUser({ username, name });
+
 
 
 
@@ -61,8 +68,7 @@ const SignIn = () => {
             cookies.set("token", responseData.token, { expires });
             cookies.set("username", responseData.username, { expires });
             cookies.set("name", responseData.name, { expires });
-
-            return user;
+            navigate("/");
         } catch (error) {
             console.error('Error creating user:', error.message);
             throw error;
