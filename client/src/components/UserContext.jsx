@@ -31,29 +31,37 @@ const UserProvider = (props) => {
             token,
         });
 
-        setClient(myClient);
-        setUser({ username, name });
-        setLoadingClient(false);
+        myClient.connectUser(user, token)
+            .then(() => {
+                setClient(myClient);
+                setUser({ username, name });
+                setLoadingClient(false);
+            })
+            .catch(() => {
+                setLoadingClient(false);
+            });
 
         return () => {
-            myClient.disconnectUser();
-            setClient(undefined);
-            setUser(null);
-        }
+            if (myClient) {
+                myClient.disconnectUser();
+                setClient(undefined);
+                setUser(null);
+            }
+        };
 
-    }, [])
+    }, []);
 
     return (
-        <UserContext.Provider value={{ user, setUser, client, setClient, call, setCall }}>
+        <UserContext.Provider value={{ user, setUser, client, setClient, call, setCall, isLoadingClient }}>
             {props.children}
         </UserContext.Provider>
     );
-}
+};
 
 const useUser = () => {
     const context = useContext(UserContext);
     if (!context) throw new Error("useUser must be within a UserProvider");
     return context;
-}
+};
 
 export { UserProvider, useUser };
