@@ -14,7 +14,7 @@ router.post("/createUser", async (req, res) => {
         id: username,
         role: 'user',
         name,
-        image,
+        image
     };
 
     const user = await client.upsertUsers({
